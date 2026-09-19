@@ -1,0 +1,4 @@
+project_id = "cfgtqzcjcoafzukxkmiy"
+
+[functions.wdf]
+verify_jwt = false
