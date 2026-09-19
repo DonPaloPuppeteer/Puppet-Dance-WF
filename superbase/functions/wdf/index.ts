@@ -78,7 +78,7 @@ function enterQueue(player: Player) {
 
     if (room.players.size >= 2) {
       room.options = makeOptions(room);
-      if (room.options.length === 2) {
+      if (room.options.length === 1) {
         room.phase = "voting";
         room.votes.clear();
         broadcast(room, {
