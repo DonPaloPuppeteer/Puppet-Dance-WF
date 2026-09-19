@@ -76,9 +76,10 @@ function enterQueue(player: Player) {
       })),
     });
 
-    if (room.players.size >= 2) {
+    // PARCHE: Cambiado de 2 a 1 para permitir iniciar con un solo jugador
+    if (room.players.size >= 1) {
       room.options = makeOptions(room);
-      if (room.options.length === 1) {
+      if (room.options.length >= 1) {
         room.phase = "voting";
         room.votes.clear();
         broadcast(room, {
@@ -101,6 +102,21 @@ function enterQueue(player: Player) {
   };
   rooms.set(newRoom.id, newRoom);
   send(player.socket, { type: "match_found", room_id: newRoom.id });
+  
+  // PARCHE: Activar inmediatamente si entra a una sala nueva él solo
+  if (newRoom.players.size >= 1) {
+    newRoom.options = makeOptions(newRoom);
+    if (newRoom.options.length >= 1) {
+      newRoom.phase = "voting";
+      newRoom.votes.clear();
+      broadcast(newRoom, {
+        type: "vote_options",
+        songs: newRoom.options,
+        seconds: 15,
+      });
+    }
+  }
+
   return newRoom;
 }
 
@@ -155,8 +171,8 @@ function handleMessage(socket: WebSocket, raw: string) {
       broadcast(room, { type: "vote_update", votes: counts });
 
       if (room.votes.size >= room.players.size) {
-        const winner = counts[0] >= counts[1] ? 0 : 1;
-        const song = room.options[winner];
+        const winner = counts[0] >= (counts[1] || 0) ? 0 : 1;
+        const song = room.options[winner] || room.options[0];
         room.phase = "playing";
         broadcast(room, {
           type: "vote_result",
